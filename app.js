@@ -1,17 +1,27 @@
-// app.js
 const express = require('express');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const sqlite3 = require('sqlite3').verbose();
+const session = require('express-session');
 
 const app = express();
+
+// Set view engine
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
 
-// 1) Serve static files from /public
+// Configure session middleware
+app.use(session({
+  secret: 'your-secret-key', // change this to a strong secret
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // set to true if using HTTPS
+}));
+
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 2) Initialize the SQLite DB
+// Initialize SQLite DB
 const db = new sqlite3.Database(path.join(__dirname, 'logo.db'), (err) => {
   if (err) {
     console.error('Error opening SQLite database:', err);
@@ -38,14 +48,49 @@ const db = new sqlite3.Database(path.join(__dirname, 'logo.db'), (err) => {
 
 // Middleware to set dynamic baseUrl for EJS templates
 app.use((req, res, next) => {
-  const protocol = req.protocol; // 'http' or 'https'
-  const host = req.get('host'); // e.g. 'localhost:3000'
+  const protocol = req.protocol;
+  const host = req.get('host');
   res.locals.baseUrl = `${protocol}://${host}`;
   next();
 });
 
-// 3) Dashboard route: list pixels
-app.get('/', (req, res) => {
+// Middleware to protect routes
+const requireLogin = (req, res, next) => {
+  if (req.session && req.session.loggedIn) {
+    next();
+  } else {
+    res.redirect('/login');
+  }
+};
+
+// --------- Login Routes ---------
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  const validUsername = 'admin'; // change as needed
+  const validPassword = 'password123'; // change as needed
+
+  if (username === validUsername && password === validPassword) {
+    req.session.loggedIn = true;
+    res.redirect('/');
+  } else {
+    res.render('login', { error: 'Invalid username or password' });
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+// --------- Main site routes ---------
+
+// Dashboard route: list pixels (protected)
+app.get('/', requireLogin, (req, res) => {
   const query = 'SELECT * FROM pixels ORDER BY createdAt DESC';
   db.all(query, [], (err, pixels) => {
     if (err) {
@@ -55,8 +100,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// 4) Create a new pixel
-app.post('/create', (req, res) => {
+// Create a new pixel
+app.post('/create', requireLogin, (req, res) => {
   const { name } = req.body;
   const pixelId = uuidv4();
   const createdAt = new Date().toISOString();
@@ -71,8 +116,7 @@ app.post('/create', (req, res) => {
   });
 });
 
-
-// To this:
+// Pixel open tracking (public route)
 app.get('/logo/:id', (req, res) => {
   const pixelId = req.params.id;
 
@@ -108,8 +152,8 @@ app.get('/logo/:id', (req, res) => {
   });
 });
 
-// 6) View logs for a specific pixel
-app.get('/logs/:id', (req, res) => {
+// View logs for a specific pixel (protected)
+app.get('/logs/:id', requireLogin, (req, res) => {
   const pixelId = req.params.id;
 
   const selectPixel = 'SELECT * FROM pixels WHERE id = ?';
@@ -133,7 +177,7 @@ app.get('/logs/:id', (req, res) => {
   });
 });
 
-// 7) Start server
+// --------- Start server ---------
 const PORT = process.env.PORT || 3300;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
