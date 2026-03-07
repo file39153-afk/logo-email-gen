@@ -3,7 +3,6 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const sqlite3 = require('sqlite3').verbose();
 const session = require('express-session');
-const fetch = require('node-fetch'); // Make sure to install: npm install node-fetch
 
 const app = express();
 
@@ -13,13 +12,13 @@ app.use(express.urlencoded({ extended: false }));
 
 // Configure session middleware
 app.use(session({
-  secret: 'your-secret-key', // change this to a strong secret
+  secret: 'your-secret-key', // change this
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // set to true if using HTTPS
+  cookie: { secure: false }
 }));
 
-// Serve static files from /public
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize SQLite DB
@@ -47,7 +46,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'logo.db'), (err) => {
   }
 });
 
-// Middleware to set dynamic baseUrl for EJS templates
+// Middleware to set dynamic baseUrl for EJS
 app.use((req, res, next) => {
   const protocol = req.protocol;
   const host = req.get('host');
@@ -55,7 +54,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware to protect routes
+// Protect routes
 const requireLogin = (req, res, next) => {
   if (req.session && req.session.loggedIn) {
     next();
@@ -64,75 +63,13 @@ const requireLogin = (req, res, next) => {
   }
 };
 
-// Function to log general access (optional)
-function logAccess(entry) {
-  fetch('https://your-logging-site.com/api/logs', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(entry),
-  }).catch(e => console.error('Logging error:', e));
-}
-
-// --------- Login Routes ---------
-app.get('/login', (req, res) => {
-  res.render('login');
-});
-
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const validUsername = 'admin'; // change as needed
-  const validPassword = 'password123'; // change as needed
-
-  if (username === validUsername && password === validPassword) {
-    req.session.loggedIn = true;
-    res.redirect('/');
-  } else {
-    res.render('login', { error: 'Invalid username or password' });
-  }
-});
-
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/login');
-  });
-});
-
-// --------- Main site routes ---------
-
-// Dashboard route: list pixels (protected)
-app.get('/', requireLogin, (req, res) => {
-  const query = 'SELECT * FROM pixels ORDER BY createdAt DESC';
-  db.all(query, [], (err, pixels) => {
-    if (err) {
-      return res.status(500).send('Error querying pixels.');
-    }
-    res.render('index', { pixels });
-  });
-});
-
-// Create a new pixel
-app.post('/create', requireLogin, (req, res) => {
-  const { name } = req.body;
-  const pixelId = uuidv4();
-  const createdAt = new Date().toISOString();
-
-  const insertPixel = 'INSERT INTO pixels (id, name, createdAt) VALUES (?, ?, ?)';
-  db.run(insertPixel, [pixelId, name || `Pixel-${pixelId.slice(0, 8)}`, createdAt], (err) => {
-    if (err) {
-      console.error('Error inserting pixel:', err);
-      return res.status(500).send('Error creating pixel.');
-    }
-    res.redirect('/');
-  });
-});
-
-// Pixel open tracking (public route with detailed debug)
+// --- Pixel load route: logs the load and serves the image ---
 app.get('/logo/:id', (req, res) => {
   const pixelId = req.params.id;
 
-  // Debug logs for request
-  console.log(`Received request for pixel ID: ${pixelId}`);
-  console.log(`Request IP: ${req.ip}`);
+  // Log request info
+  console.log(`Pixel load request for ID: ${pixelId}`);
+  console.log(`IP: ${req.ip}`);
   console.log(`User-Agent: ${req.headers['user-agent']}`);
 
   // Check if pixel exists
@@ -143,7 +80,7 @@ app.get('/logo/:id', (req, res) => {
       return res.status(500).send('Server error.');
     }
     if (!pixel) {
-      console.warn(`Pixel not found for ID: ${pixelId}`);
+      console.warn(`Pixel not found: ${pixelId}`);
       return res.status(404).send('Pixel not found');
     }
 
@@ -152,57 +89,30 @@ app.get('/logo/:id', (req, res) => {
     const ip = req.ip;
     const userAgent = req.headers['user-agent'] || '';
 
-    // Log before inserting into database
-    console.log(`Logging load: pixelId=${pixelId}, time=${time}, ip=${ip}, userAgent=${userAgent}`);
+    // Log load in console
+    console.log(`Logging pixel load: pixelId=${pixelId}, time=${time}, ip=${ip}, userAgent=${userAgent}`);
 
+    // Insert log into DB
     const insertLog = 'INSERT INTO logs (pixelId, time, ip, userAgent) VALUES (?, ?, ?, ?)';
     db.run(insertLog, [pixelId, time, ip, userAgent], function (err) {
       if (err) {
-        console.error('Error inserting log into database:', err);
+        console.error('Error inserting log into DB:', err);
       } else {
-        console.log(`Successfully logged load for pixel ${pixelId} at ${time}`);
-        console.log(`Log ID: ${this.lastID}`);
+        console.log(`Logged load with log ID: ${this.lastID}`);
       }
 
       // Send the pixel image
       res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'), (err) => {
         if (err) {
           console.error('Error sending pixel.png:', err);
-        } else {
-          console.log(`Sent pixel image for pixel ID: ${pixelId}`);
         }
       });
     });
   });
 });
 
-// View logs for a specific pixel (protected)
-app.get('/logs/:id', requireLogin, (req, res) => {
-  const pixelId = req.params.id;
-
-  const selectPixel = 'SELECT * FROM pixels WHERE id = ?';
-  db.get(selectPixel, [pixelId], (err, pixel) => {
-    if (err) {
-      console.error('Error retrieving pixel:', err);
-      return res.status(500).send('Error retrieving pixel.');
-    }
-    if (!pixel) {
-      return res.status(404).send('Pixel not found');
-    }
-
-    const selectLogs = 'SELECT * FROM logs WHERE pixelId = ? ORDER BY time DESC';
-    db.all(selectLogs, [pixelId], (logsErr, logs) => {
-      if (logsErr) {
-        console.error('Error retrieving logs:', logsErr);
-        return res.status(500).send('Error retrieving logs.');
-      }
-      res.render('logs', { pixel, logs });
-    });
-  });
-});
-
-// --------- Start server ---------
+// Start server
 const PORT = process.env.PORT || 3300;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
