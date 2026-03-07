@@ -3,6 +3,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const sqlite3 = require('sqlite3').verbose();
 const session = require('express-session');
+const fetch = require('node-fetch'); // Make sure to install: npm install node-fetch
 
 const app = express();
 
@@ -63,6 +64,15 @@ const requireLogin = (req, res, next) => {
   }
 };
 
+// Function to log general access (optional)
+function logAccess(entry) {
+  fetch('https://your-logging-site.com/api/logs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry),
+  }).catch(e => console.error('Logging error:', e));
+}
+
 // --------- Login Routes ---------
 app.get('/login', (req, res) => {
   res.render('login');
@@ -116,36 +126,50 @@ app.post('/create', requireLogin, (req, res) => {
   });
 });
 
-// Pixel open tracking (public route)
+// Pixel open tracking (public route with detailed debug)
 app.get('/logo/:id', (req, res) => {
   const pixelId = req.params.id;
+
+  // Debug logs for request
+  console.log(`Received request for pixel ID: ${pixelId}`);
+  console.log(`Request IP: ${req.ip}`);
+  console.log(`User-Agent: ${req.headers['user-agent']}`);
 
   // Check if pixel exists
   const selectPixel = 'SELECT * FROM pixels WHERE id = ?';
   db.get(selectPixel, [pixelId], (err, pixel) => {
     if (err) {
       console.error('Error looking up pixel:', err);
-      return res.status(500).send('Error retrieving pixel.');
+      return res.status(500).send('Server error.');
     }
     if (!pixel) {
+      console.warn(`Pixel not found for ID: ${pixelId}`);
       return res.status(404).send('Pixel not found');
     }
 
-    // Log open event
+    // Prepare log data
     const time = new Date().toISOString();
     const ip = req.ip;
     const userAgent = req.headers['user-agent'] || '';
 
+    // Log before inserting into database
+    console.log(`Logging load: pixelId=${pixelId}, time=${time}, ip=${ip}, userAgent=${userAgent}`);
+
     const insertLog = 'INSERT INTO logs (pixelId, time, ip, userAgent) VALUES (?, ?, ?, ?)';
-    db.run(insertLog, [pixelId, time, ip, userAgent], (logErr) => {
-      if (logErr) {
-        console.error('Error inserting log:', logErr);
+    db.run(insertLog, [pixelId, time, ip, userAgent], function (err) {
+      if (err) {
+        console.error('Error inserting log into database:', err);
+      } else {
+        console.log(`Successfully logged load for pixel ${pixelId} at ${time}`);
+        console.log(`Log ID: ${this.lastID}`);
       }
-      // Send pixel.png
-      res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'), (fsErr) => {
-        if (fsErr) {
-          console.error('Error sending pixel.png:', fsErr);
-          res.status(fsErr.status || 500).end();
+
+      // Send the pixel image
+      res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'), (err) => {
+        if (err) {
+          console.error('Error sending pixel.png:', err);
+        } else {
+          console.log(`Sent pixel image for pixel ID: ${pixelId}`);
         }
       });
     });
