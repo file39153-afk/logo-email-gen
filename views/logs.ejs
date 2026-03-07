@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mail Tracker - Logs</title>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        padding: 8px;
+        border: 1px solid #ccc;
+        vertical-align: top;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Logs for <%= pixel.name %></h1>
+
+      <% 
+        // 1) Date/time formatting for both "Created At" and each log
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        function formatDateTime(isoString) {
+          const d = new Date(isoString);
+          let day  = d.getDate();
+          let mon  = months[d.getMonth()];
+          let year = d.getFullYear();
+
+          let hours   = d.getHours();
+          let minutes = d.getMinutes();
+          let seconds = d.getSeconds();
+
+          let ampm = (hours >= 12) ? "pm" : "am";
+          // convert 0-23 -> 1-12
+          hours = (hours === 0) ? 12 : (hours > 12 ? hours - 12 : hours);
+
+          const pad = (num) => num.toString().padStart(2, "0");
+          return `${pad(day)}-${mon}-${year} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}${ampm}`;
+        }
+
+        // Convert "Created At" to local time
+        const createdLocal = formatDateTime(pixel.createdAt);
+      %>
+
+      <p><strong>Pixel ID:</strong> <%= pixel.id %></p>
+      <p><strong>Created At:</strong> <%= createdLocal %></p>
+
+      <h2>Open Events</h2>
+      <p style="font-style: italic; margin-bottom: 1em;">
+        You may see extra logs if bots (for example, GoogleImageProxy via `ggpht.com`) or the email client repeatedly load the image. Check each log’s timestamp to determine whether it’s a genuine user open or just a proxy/bot fetching the image again.
+      </p>
+
+      <%
+        // 2) Color-grouping logic for logs under 2-second intervals
+        const rowColors = ["#ffeeee", "#eeffee", "#eeeeff", "#fff0f0", "#f0fff0", "#f0f0ff"];
+        let colorIndex = 0;
+        let lastTime = null; // numeric timestamp in ms
+      %>
+
+      <table>
+        <colgroup>
+          <col style="width: 220px;" />
+          <col style="width: 160px;" />
+          <col style="width: auto;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>IP</th>
+            <th>User-Agent</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% 
+          // If logs come from DB newest-first, reverse to process oldest->newest
+          const sortedLogs = logs.slice().reverse();
+
+          sortedLogs.forEach((log) => {
+            const currentTime = new Date(log.time).getTime();
+
+            if (lastTime !== null) {
+              const diff = currentTime - lastTime; // ms
+              if (diff > 2000) {
+                colorIndex = (colorIndex + 1) % rowColors.length;
+              }
+            }
+            lastTime = currentTime;
+
+            const formatted = formatDateTime(log.time);
+            const rowColor = rowColors[colorIndex];
+          %>
+            <tr style="background-color: <%= rowColor %>;">
+              <td><%= formatted %></td>
+              <td><%= log.ip %></td>
+              <td><%= log.userAgent %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <p><a href="/">← Back to Dashboard</a></p>
+    </div>
+  </body>
+</html>
