@@ -142,6 +142,14 @@ app.get('/logo/:id.png', (req, res) => {
   console.log(`Loading pixel image for ID: ${pixelId}`);
   const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || '';
+console.log('Captured User-Agent:', userAgent); // Debugging line
+db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
+  .then(() => {
+    console.log('Log inserted successfully.');
+  })
+  .catch(err => {
+    console.error('Error inserting log:', err);
+  });
   const now = new Date().toISOString();
   db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
 
