@@ -2,36 +2,37 @@ const express = require('express');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { Client } = require('pg');
+const session = require('express-session');
 
 const app = express();
-const session = require('express-session');
-const SECRET_KEY = process.env.SECRET_KEY; // Define your secret key
+const SECRET_KEY = process.env.SECRET_KEY; // your secret key
 
+// Session setup
 app.use(session({
   secret: SECRET_KEY,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // set to true if deploying with HTTPS
+  cookie: { secure: false } // change to true if HTTPS
 }));
 
 // Set view engine
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
 
-// Replace with your PostgreSQL connection info
+// PostgreSQL client setup
 const db = new Client({
-  host: 'dpg-d6mhegn5r7bs73cek66g-a',     // your render host
-  port: 5432,                       // your port
-  database: 'logo02',         // your database name
-  user: 'logo02_user',            // your username
-  password: 'cmZg6T5afl8MgHArMMPnDL106lqbhrCQ'         // your password
+  host: 'dpg-d6mhegn5r7bs73cek66g-a', // your render host
+  port: 5432,
+  database: 'logo02',
+  user: 'logo02_user',
+  password: 'cmZg6T5afl8MgHArMMPnDL106lqbhrCQ'
 });
 
+// Connect to PostgreSQL
 db.connect()
   .then(() => {
     console.log('Connected to PostgreSQL database.');
-
-    // Create tables if they don't exist
+    // Create tables if they do not exist
     return Promise.all([
       db.query(`
         CREATE TABLE IF NOT EXISTS pixels (
@@ -53,10 +54,10 @@ db.connect()
   })
   .catch(err => console.error('DB connection error:', err));
 
-// Serve static files from /public
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware to set dynamic baseUrl for EJS templates
+// Dynamic base URL for templates
 app.use((req, res, next) => {
   const protocol = req.protocol;
   const host = req.get('host');
@@ -64,7 +65,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware to protect routes
+// Middleware for login protection
 const requireLogin = (req, res, next) => {
   if (req.session && req.session.loggedIn) {
     next();
@@ -96,8 +97,9 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// --------- Main site routes ---------
-// List pixels dashboard (protected)
+// --------- Main routes ---------
+
+// Dashboard
 app.get('/', requireLogin, (req, res) => {
   db.query('SELECT * FROM pixels ORDER BY createdAt DESC')
     .then(result => {
@@ -109,7 +111,7 @@ app.get('/', requireLogin, (req, res) => {
     });
 });
 
-// API to create a new pixel (logo)
+// API to create a pixel
 app.post('/api/create', (req, res) => {
   const { name } = req.body;
   const pixelId = 'pixel_' + Math.random().toString(36).slice(2, 10);
@@ -125,23 +127,8 @@ app.post('/api/create', (req, res) => {
       res.status(500).json({ success: false, error: 'Error creating pixel' });
     });
 });
-// 4) Create a new pixel
-app.post('/create', (req, res) => {
-  const { name } = req.body;
-  const pixelId = uuidv4();
-  const createdAt = new Date().toISOString();
 
-  const insertPixel = 'INSERT INTO pixels (id, name, createdAt) VALUES (?, ?, ?)';
-  db.run(insertPixel, [pixelId, name || `Pixel-${pixelId.slice(0, 8)}`, createdAt], (err) => {
-    if (err) {
-      console.error('Error inserting pixel:', err);
-      return res.status(500).send('Error creating pixel.');
-    }
-    res.redirect('/');
-  });
-});
-
-// Route to serve pixel image and log load
+// Serve pixel image and log load
 app.get('/logo/:id.png', (req, res) => {
   const pixelId = req.params.id;
 
@@ -173,7 +160,7 @@ app.get('/logo/:id.png', (req, res) => {
     });
 });
 
-// View logs for a specific pixel (protected)
+// View logs for a pixel
 app.get('/logs/:id', requireLogin, (req, res) => {
   const pixelId = req.params.id;
   db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
@@ -194,6 +181,22 @@ app.get('/logs/:id', requireLogin, (req, res) => {
     .catch(err => {
       console.error('Error retrieving pixel:', err);
       res.status(500).send('Server error');
+    });
+});
+
+// --------- Example create route ---------
+app.post('/create', (req, res) => {
+  const { name } = req.body;
+  const pixelId = 'pixel_' + Math.random().toString(36).slice(2, 10);
+  const createdAt = new Date().toISOString();
+
+  db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId}`, createdAt])
+    .then(() => {
+      res.redirect('/'); // or send JSON if preferred
+    })
+    .catch(err => {
+      console.error('Error creating pixel:', err);
+      res.status(500).send('Error creating pixel');
     });
 });
 
