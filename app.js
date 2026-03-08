@@ -69,16 +69,16 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const { username, password } = req.body;
+  const { username: inputUser, password: inputPass } = req.body;
+
   const envUser = process.env.ADMIN_USERNAME;
   const envPass = process.env.ADMIN_PASSWORD;
 
-  if (username === envUser && password === envPass) {
-    // Successful login, return a response
-    res.json({ message: 'Logged in successfully' });
+  if (inputUser === envUser && inputPass === envPass) {
+    req.session.loggedIn = true;
+    res.redirect('/');
   } else {
-    // Invalid credentials, return an error response
-    res.status(401).json({ message: 'Invalid username or password' });
+    res.render('login', { error: 'Invalid username or password' });
   }
 });
 app.get('/logout', (req, res) => {
