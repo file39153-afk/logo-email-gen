@@ -140,7 +140,6 @@ app.post('/create', requireLogin, (req, res) => {
   });
 });
 
-// --------- Image load route with logging ---------
 app.get('/logo/:id.png', (req, res) => {
   const pixelId = req.params.id;
 
@@ -166,24 +165,21 @@ app.get('/logo/:id.png', (req, res) => {
     const ip = req.ip;
     const userAgent = req.headers['user-agent'] || '';
 
-    // Log load into console
-    console.log(`Logging pixel load: pixelId=${pixelId}, time=${time}, ip=${ip}, userAgent=${userAgent}`);
-
-    // Save log into database
+    // Save the load event into logs table
     const insertLog = 'INSERT INTO logs (pixelId, time, ip, userAgent) VALUES (?, ?, ?, ?)';
-    db.run(insertLog, [pixelId, time, ip, userAgent], function (err) {
+    db.run(insertLog, [pixelId, time, ip, userAgent], (err) => {
       if (err) {
-        console.error('Error inserting log into DB:', err);
+        console.error('Error inserting log:', err);
       } else {
-        console.log(`Logged load with log ID: ${this.lastID}`);
+        console.log(`Logged load for pixel ${pixelId}`);
       }
+    });
 
-      // Send pixel image
-      res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'), (err) => {
-        if (err) {
-          console.error('Error sending pixel.png:', err);
-        }
-      });
+    // Send the pixel image
+    res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'), (err) => {
+      if (err) {
+        console.error('Error sending pixel.png:', err);
+      }
     });
   });
 });
