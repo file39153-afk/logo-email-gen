@@ -45,7 +45,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'logo.db'), (err) => {
     `);
   }
 });
-
+app.set('trust proxy', true);
 // Middleware to set dynamic baseUrl for EJS templates
 app.use((req, res, next) => {
   const protocol = req.protocol;
