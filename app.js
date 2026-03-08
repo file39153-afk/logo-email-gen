@@ -9,10 +9,10 @@ const app = express();
 // Set view engine
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
-
+const envKey = process.env.SECRET_KEY;
 // Configure session middleware using the environment variable
 app.use(session({
-  secret: process.env.SECRET_KEY, // use the environment variable value
+  secret: envKey, // use the environment variable value
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false } // set to true if using HTTPS
