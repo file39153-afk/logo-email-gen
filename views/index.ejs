@@ -1,173 +1,205 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Logo Manager</title>
-    <meta charset="UTF-8" />
-    <style>
-      body {
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        margin: 20px;
-        background: #f0f2f5;
-      }
-      .container {
-        max-width: 900px;
-        margin: auto;
-        background: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-      h1 {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #333;
-      }
-      h2 {
-        margin-top: 30px;
-        margin-bottom: 10px;
-        color: #555;
-      }
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Logo Manager</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Body with gradient background and centered content */
+    body {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2); /* same as login background */
+    }
+
+    /* Container styling similar to login box */
+    .container {
+      background: #f0f0f0; /* light grey background for contrast */
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-width: 900px;
+      width: 90%;
+    }
+
+    /* Heading styles */
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    h2 {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      color: #555;
+      font-size: 1.5rem;
+      text-align: center;
+    }
+
+    /* Create form styles */
+    form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f8f9fa;
+    }
+    input[type="text"] {
+      border: none;
+      background: transparent;
+      font-family: monospace;
+      width: 100%;
+      cursor: pointer;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-link {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #007bff;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive adjustments */
+    @media(max-width: 600px){
       form {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-      }
-      input[type="text"] {
-        flex: 1;
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 1rem;
+        flex-direction: column;
       }
       button {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
-        background-color: #007bff;
-        color: #fff;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      button:hover {
-        background-color: #0056b3;
-      }
-      table {
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-      th, td {
-        padding: 12px;
-        border: 1px solid #ddd;
-        text-align: left;
-      }
-      th {
-        background-color: #f8f9fa;
-      }
-      input[type="text"] {
-        border: none;
-        background: transparent;
-        font-family: monospace;
-        width: 100%;
-        cursor: pointer;
       }
       .actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: center;
       }
-      .btn-link {
-        background: none;
-        border: none;
-        padding: 0;
-        color: #007bff;
-        cursor: pointer;
-        font-size: 0.9rem;
-      }
-      .btn-link:hover {
-        text-decoration: underline;
-      }
-      @media(max-width: 600px){
-        form {
-          flex-direction: column;
-        }
-        button {
-          width: 100%;
-        }
-        .actions {
-          flex-direction: column;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Logo Manager - Dashboard</h1>
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Logo Manager - Dashboard</h1>
 
-      <h2>Create a New Logo</h2>
-      <form action="/create" method="POST">
-        <input type="text" id="name" name="name" placeholder="Logo Name (optional)" />
-        <button type="submit">Create Logo</button>
-      </form>
+    <!-- Create new logo -->
+    <h2>Create a New Logo</h2>
+    <form action="/create" method="POST">
+      <input type="text" id="name" name="name" placeholder="Logo Name (optional)" />
+      <button type="submit">Create Logo</button>
+    </form>
 
-      <hr />
+    <hr />
 
-      <h2>Existing Logos</h2>
-      <% if (pixels.length === 0) { %>
-        <p>No logos created yet.</p>
-      <% } else { %>
-        <table>
-          <thead>
+    <!-- List logos -->
+    <h2>Existing Logos</h2>
+    <% if (pixels.length === 0) { %>
+      <p style="text-align:center;">No logos created yet.</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Logo URL</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% 
+          const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+          function formatDate(isoString) {
+            const d = new Date(isoString);
+            let day = d.getDate();
+            let mon = months[d.getMonth()];
+            let year = d.getFullYear();
+            let hours = d.getHours();
+            let minutes = d.getMinutes();
+            let seconds = d.getSeconds();
+            let ampm = hours >= 12 ? "pm" : "am";
+            hours = hours % 12 || 12;
+            const pad = (n) => n.toString().padStart(2, "0");
+            return `${pad(day)}-${mon}-${year} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}${ampm}`;
+          }
+
+          pixels.forEach(pixel => { 
+          %>
             <tr>
-              <th>Name</th>
-              <th>Created</th>
-              <th>Logo URL</th>
-              <th>Actions</th>
+              <td><%= pixel.name %></td>
+              <td><%= formatDate(pixel.createdAt) %></td>
+              <td>
+                <input type="text" readonly value="<%= baseUrl + '/logo/' + pixel.id + '.png' %>" id="logo-url-<%= pixel.id %>" />
+              </td>
+              <td class="actions">
+                <button class="btn-link" onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
+                <a href="/logs/<%= pixel.id %>">View Logs</a>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            <% 
-            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-            function formatDate(isoString) {
-              const d = new Date(isoString);
-              let day = d.getDate();
-              let mon = months[d.getMonth()];
-              let year = d.getFullYear();
-              let hours = d.getHours();
-              let minutes = d.getMinutes();
-              let seconds = d.getSeconds();
-              let ampm = hours >= 12 ? "pm" : "am";
-              hours = hours % 12 || 12;
-              const pad = (n) => n.toString().padStart(2, "0");
-              return `${pad(day)}-${mon}-${year} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}${ampm}`;
-            }
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
 
-            pixels.forEach(pixel => { 
-            %>
-              <tr>
-                <td><%= pixel.name %></td>
-                <td><%= formatDate(pixel.createdAt) %></td>
-                <td>
-                  <input type="text" readonly value="<%= baseUrl + '/logo/' + pixel.id + '.png' %>" id="logo-url-<%= pixel.id %>" />
-                </td>
-                <td class="actions">
-                  <button class="btn-link" onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      <% } %>
-    </div>
-
-    <script>
-      function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert("Copied to clipboard!");
-        });
-      }
-    </script>
-  </body>
+  <script>
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Copied to clipboard!");
+      });
+    }
+  </script>
+</body>
 </html>
