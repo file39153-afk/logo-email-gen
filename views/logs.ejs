@@ -94,9 +94,7 @@
     <h1>Logs for "<%= pixel.name %>"</h1>
     <h2>Created at: <%= new Date(pixel.createdAt).toLocaleString() %></h2>
 
-    <p style="margin-top:1em; font-style:italic;">
-      You may see extra logs if bots (e.g., GoogleImageProxy via ggpht.com) or email clients repeatedly load the image. Check timestamps to determine if it's genuine user activity or automated fetches.
-    </p>
+
 
     <!-- Define the date formatter function at the top of the template -->
     <%
@@ -160,8 +158,6 @@
         <% }) %>
       </tbody>
     </table>
-
-    <p style="margin-top:2em;"><a href="/">← Back to Dashboard</a></p>
   </div>
 </body>
 </html>
