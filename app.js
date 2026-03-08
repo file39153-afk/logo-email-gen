@@ -124,6 +124,7 @@ app.post('/create', requireLogin, (req, res) => {
   const { name } = req.body;
   const pixelId = uuidv4();
   const createdAt = new Date().toISOString();
+db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId}`, createdAt])
 
   db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdAt])
     .then(() => {
