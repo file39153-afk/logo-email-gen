@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Replace with your PostgreSQL connection info
 const db = new Client({
-  host: 'atw-logo.onrender.com',     // your render host
+  host: 'dpg-d6mhegn5r7bs73cek66g-a',     // your render host
   port: 5432,                       // your port
   database: 'logo02',         // your database name
   user: 'logo02_user',            // your username
