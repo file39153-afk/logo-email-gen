@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Logo Manager</title>
   <style>
-    /* Reset and base styles */
+    /* Reset some default styles */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -18,36 +18,38 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2); /* same as login background */
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
-    /* Container styling similar to login box */
+    /* Container with smooth style */
     .container {
-      background: #f0f0f0; /* light grey background for contrast */
-      padding: 40px;
+      background: #f0f0f0;
+      padding: 40px 30px;
       border-radius: 15px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      max-width: 900px;
+      max-width: 950px;
       width: 90%;
+      transition: all 0.3s ease;
     }
 
     /* Heading styles */
     h1 {
       text-align: center;
       margin-bottom: 20px;
+      font-size: 2.2rem;
       color: #333;
     }
 
     h2 {
       margin-top: 30px;
       margin-bottom: 10px;
-      color: #555;
       font-size: 1.5rem;
+      color: #555;
       text-align: center;
     }
 
-    /* Create form styles */
+    /* Form styles */
     form {
       display: flex;
       gap: 10px;
@@ -58,23 +60,30 @@
     input[type="text"] {
       flex: 1;
       min-width: 200px;
-      padding: 8px 12px;
+      padding: 12px 15px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 10px;
       font-size: 1rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    input[type="text"]:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 8px rgba(0,123,255,0.3);
+      outline: none;
     }
     button {
-      padding: 8px 16px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 5px;
+      border-radius: 10px;
       background-color: #007bff;
       color: #fff;
-      font-size: 1rem;
+      font-size: 1.1rem;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s, transform 0.2s;
     }
     button:hover {
       background-color: #0056b3;
+      transform: translateY(-2px);
     }
 
     /* Table styles */
@@ -82,14 +91,16 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      font-size: 0.95rem;
     }
     th, td {
-      padding: 12px;
+      padding: 15px;
       border: 1px solid #ddd;
       text-align: left;
     }
     th {
-      background-color: #f8f9fa;
+      background-color: #e9ecef;
+      font-weight: 600;
     }
     input[type="text"] {
       border: none;
@@ -98,21 +109,39 @@
       width: 100%;
       cursor: pointer;
     }
-    .actions {
+    /* Style the actions cell to match height and centering */
+    td.actions {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
+      gap: 10px;
+      min-width: 150px;
     }
-    .btn-link {
-      background: none;
-      border: none;
-      padding: 0;
-      color: #007bff;
-      cursor: pointer;
+    /* Style links/buttons inside actions */
+    .actions a, .actions button {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 8px;
       font-size: 0.9rem;
+      transition: all 0.2s;
     }
-    .btn-link:hover {
+    /* Copy button styling */
+    .actions button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .actions button:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+    /* View logs link style */
+    .actions a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .actions a:hover {
       text-decoration: underline;
     }
 
@@ -120,13 +149,17 @@
     @media(max-width: 600px){
       form {
         flex-direction: column;
+        align-items: center;
       }
       button {
         width: 100%;
       }
-      .actions {
+      table {
+        font-size: 0.9rem;
+      }
+      td.actions {
         flex-direction: column;
-        align-items: center;
+        min-width: auto;
       }
     }
   </style>
@@ -147,7 +180,7 @@
     <!-- List logos -->
     <h2>Existing Logos</h2>
     <% if (pixels.length === 0) { %>
-      <p style="text-align:center;">No logos created yet.</p>
+      <p style="text-align:center; margin-top:20px;">No logos created yet.</p>
     <% } else { %>
       <table>
         <thead>
@@ -181,10 +214,10 @@
               <td><%= pixel.name %></td>
               <td><%= formatDate(pixel.createdAt) %></td>
               <td>
-                <input type="text" readonly value="<%= baseUrl + '/logo/' + pixel.id + '.png' %>" id="logo-url-<%= pixel.id %>" />
+                <input type="text" readonly value="<%= baseUrl + '/logo/' + pixel.id + '.png' %>" />
               </td>
               <td class="actions">
-                <button class="btn-link" onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
+                <button onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
                 <a href="/logs/<%= pixel.id %>">View Logs</a>
               </td>
             </tr>
