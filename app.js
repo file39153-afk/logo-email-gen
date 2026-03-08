@@ -10,9 +10,9 @@ const app = express();
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session middleware
+// Configure session middleware using the environment variable
 app.use(session({
-  secret: 'your-secret-key', // change this to a strong secret
+  secret: process.env.SECRET_KEY, // use the environment variable value
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false } // set to true if using HTTPS
@@ -70,17 +70,17 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  const validUsername = 'admin'; // change as needed
-  const validPassword = 'password123'; // change as needed
+  const envUser = process.env.ADMIN_USERNAME;
+  const envPass = process.env.ADMIN_PASSWORD;
 
-  if (username === validUsername && password === validPassword) {
-    req.session.loggedIn = true;
-    res.redirect('/');
+  if (username === envUser && password === envPass) {
+    // Successful login, return a response
+    res.json({ message: 'Logged in successfully' });
   } else {
-    res.render('login', { error: 'Invalid username or password' });
+    // Invalid credentials, return an error response
+    res.status(401).json({ message: 'Invalid username or password' });
   }
 });
-
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/login');
