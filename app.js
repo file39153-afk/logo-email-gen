@@ -5,13 +5,15 @@ const { Client } = require('pg');
 
 const app = express();
 const session = require('express-session');
+const SECRET_KEY = process.env.SECRET_KEY; // Define your secret key
 
 app.use(session({
-  secret: 'your-secret-key', // replace with a secure secret
+  secret: SECRET_KEY,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // set to true if using HTTPS
+  cookie: { secure: false } // set to true if deploying with HTTPS
 }));
+
 // Set view engine
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
