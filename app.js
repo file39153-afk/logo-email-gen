@@ -125,6 +125,21 @@ app.post('/api/create', (req, res) => {
       res.status(500).json({ success: false, error: 'Error creating pixel' });
     });
 });
+// 4) Create a new pixel
+app.post('/create', (req, res) => {
+  const { name } = req.body;
+  const pixelId = uuidv4();
+  const createdAt = new Date().toISOString();
+
+  const insertPixel = 'INSERT INTO pixels (id, name, createdAt) VALUES (?, ?, ?)';
+  db.run(insertPixel, [pixelId, name || `Pixel-${pixelId.slice(0, 8)}`, createdAt], (err) => {
+    if (err) {
+      console.error('Error inserting pixel:', err);
+      return res.status(500).send('Error creating pixel.');
+    }
+    res.redirect('/');
+  });
+});
 
 // Route to serve pixel image and log load
 app.get('/logo/:id.png', (req, res) => {
