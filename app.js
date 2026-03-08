@@ -25,11 +25,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // PostgreSQL client setup
 const db = new Client({
-  host: 'dpg-d6mhegn5r7bs73cek66g-a', // your host
+  host: 'dpg-d6mjpc4hg0os739l80l0-a', // your host
   port: 5432,
   database: 'logo02',
-  user: 'logo02_user',
-  password: 'cmZg6T5afl8MgHArMMPnDL106lqbhrCQ'
+  user: 'logo02_tyxs_user',
+  password: '38yaB9rM2tsUi49MuR0pNomBiKzH3EeQ'
 });
 
 // Connect to PostgreSQL
