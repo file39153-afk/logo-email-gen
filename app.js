@@ -5,26 +5,27 @@ const { Client } = require('pg');
 const session = require('express-session');
 
 const app = express();
-const SECRET_KEY = process.env.SECRET_KEY; // your secret key
-
-// Trust proxy if behind a proxy/load balancer
-app.set('trust proxy', true);
-
-// Session setup
-app.use(session({
-  secret: SECRET_KEY,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false } // change to true if deploying with HTTPS
-}));
 
 // Set view engine
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
 
+const envKey = process.env.SECRET_KEY;
+
+// Configure session middleware
+app.use(session({
+  secret: envKey,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
+}));
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
 // PostgreSQL client setup
 const db = new Client({
-  host: 'dpg-d6mhegn5r7bs73cek66g-a', // your render host
+  host: 'dpg-d6mhegn5r7bs73cek66g-a', // your host
   port: 5432,
   database: 'logo02',
   user: 'logo02_user',
@@ -35,6 +36,8 @@ const db = new Client({
 db.connect()
   .then(() => {
     console.log('Connected to PostgreSQL database.');
+
+    // Create tables if not exist
     return Promise.all([
       db.query(`
         CREATE TABLE IF NOT EXISTS pixels (
@@ -56,10 +59,12 @@ db.connect()
   })
   .catch(err => console.error('DB connection error:', err));
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Helper to get client IP
+const getClientIp = (req) => {
+  return req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+};
 
-// Dynamic base URL for templates
+// Middleware for setting base URL
 app.use((req, res, next) => {
   const protocol = req.protocol;
   const host = req.get('host');
@@ -67,7 +72,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware for login protection
+// Middleware to protect routes
 const requireLogin = (req, res, next) => {
   if (req.session && req.session.loggedIn) {
     next();
@@ -75,9 +80,6 @@ const requireLogin = (req, res, next) => {
     res.redirect('/login');
   }
 };
-
-// Middleware to trust proxy for correct IP
-app.set('trust proxy', true);
 
 // --------- Login Routes ---------
 app.get('/login', (req, res) => {
@@ -88,6 +90,7 @@ app.post('/login', (req, res) => {
   const { username: inputUser, password: inputPass } = req.body;
   const envUser = process.env.ADMIN_USERNAME;
   const envPass = process.env.ADMIN_PASSWORD;
+
   if (inputUser === envUser && inputPass === envPass) {
     req.session.loggedIn = true;
     res.redirect('/');
@@ -102,7 +105,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// --------- Main site routes ---------
+// --------- Main routes ---------
 
 // Dashboard
 app.get('/', requireLogin, (req, res) => {
@@ -116,71 +119,45 @@ app.get('/', requireLogin, (req, res) => {
     });
 });
 
-// API to create a pixel
-app.post('/api/create', (req, res) => {
+// Create pixel
+app.post('/create', requireLogin, (req, res) => {
   const { name } = req.body;
-  const pixelId = 'pixel_' + Math.random().toString(36).slice(2, 10);
+  const pixelId = uuidv4();
   const createdAt = new Date().toISOString();
 
-  db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId}`, createdAt])
+  db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdAt])
     .then(() => {
-      const url = `${res.locals.baseUrl}/logo/${pixelId}.png`;
-      res.json({ success: true, id: pixelId, url });
+      res.redirect('/');
     })
     .catch(err => {
       console.error('Error creating pixel:', err);
-      res.status(500).json({ success: false, error: 'Error creating pixel' });
+      res.status(500).send('Error creating pixel.');
     });
 });
 
 // Serve pixel image and log load
 app.get('/logo/:id.png', (req, res) => {
   const pixelId = req.params.id;
+  console.log(`Loading pixel image for ID: ${pixelId}`);
+  const ip = getClientIp(req);
+  const userAgent = req.headers['user-agent'] || '';
+  const now = new Date().toISOString();
 
-  // Check if pixel exists
-  db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
-    .then(result => {
-      const pixel = result.rows[0];
-      if (!pixel) {
-        console.warn(`Pixel not found: ${pixelId}`);
-        return res.status(404).send('Pixel not found');
-      }
-
-      // Log load event
-      const now = new Date().toISOString();
-      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-      const userAgent = req.headers['user-agent'] || '';
-
-      db.query(
-        'INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)',
-        [pixelId, now, ip, userAgent]
-      ).catch(err => console.error('Error inserting log:', err));
-
-      // Serve static pixel image
-      res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
-    })
-    .catch(err => {
-      console.error('DB query error:', err);
-      res.status(500).send('Server error.');
-    });
-});
-
-// View logs for a specific pixel
-app.get('/logs/:id', requireLogin, (req, res) => {
-  const pixelId = req.params.id;
+  // Check pixel exists
   db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
     .then(result => {
       if (result.rows.length === 0) {
+        console.warn(`Pixel not found: ${pixelId}`);
         return res.status(404).send('Pixel not found');
       }
-      // Fetch logs
-      db.query('SELECT * FROM logs WHERE pixelId = $1 ORDER BY id DESC', [pixelId])
-        .then(logsResult => {
-          res.render('logs', { pixel: result.rows[0], logs: logsResult.rows });
+      // Log load
+      db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
+        .then(() => {
+          res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
         })
         .catch(err => {
-          console.error('Error fetching logs:', err);
-          res.status(500).send('Error fetching logs');
+          console.error('Error inserting log:', err);
+          res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
         });
     })
     .catch(err => {
@@ -189,19 +166,26 @@ app.get('/logs/:id', requireLogin, (req, res) => {
     });
 });
 
-// Example create route (if needed)
-app.post('/create', (req, res) => {
-  const { name } = req.body;
-  const pixelId = 'pixel_' + Math.random().toString(36).slice(2, 10);
-  const createdAt = new Date().toISOString();
-
-  db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId}`, createdAt])
-    .then(() => {
-      res.redirect('/'); // or respond with JSON
+// View logs for a pixel
+app.get('/logs/:id', requireLogin, (req, res) => {
+  const pixelId = req.params.id;
+  db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
+    .then(result => {
+      if (result.rows.length === 0) {
+        return res.status(404).send('Pixel not found');
+      }
+      db.query('SELECT * FROM logs WHERE pixelId = $1 ORDER BY time DESC', [pixelId])
+        .then(logsResult => {
+          res.render('logs', { pixel: result.rows[0], logs: logsResult.rows });
+        })
+        .catch(err => {
+          console.error('Error retrieving logs:', err);
+          res.status(500).send('Error retrieving logs');
+        });
     })
     .catch(err => {
-      console.error('Error creating pixel:', err);
-      res.status(500).send('Error creating pixel');
+      console.error('Error retrieving pixel:', err);
+      res.status(500).send('Server error');
     });
 });
 
