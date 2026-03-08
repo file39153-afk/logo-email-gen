@@ -41,7 +41,7 @@
       color: #555;
     }
 
-    /* Back button similar to your index style */
+    /* Back button styling */
     a.back-btn {
       display: inline-block;
       margin-bottom: 20px;
@@ -98,11 +98,32 @@
       You may see extra logs if bots (e.g., GoogleImageProxy via ggpht.com) or email clients repeatedly load the image. Check timestamps to determine if it's genuine user activity or automated fetches.
     </p>
 
+    <!-- Define the date formatter function at the top of the template -->
     <%
-      // Color grouping logic based on 2-second gaps
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      function formatDateTime(isoString) {
+        const d = new Date(isoString);
+        let day  = d.getDate();
+        let mon  = months[d.getMonth()];
+        let year = d.getFullYear();
+
+        let hours   = d.getHours();
+        let minutes = d.getMinutes();
+        let seconds = d.getSeconds();
+
+        let ampm = (hours >= 12) ? "pm" : "am";
+        hours = (hours === 0) ? 12 : (hours > 12 ? hours - 12 : hours);
+        const pad = (num) => num.toString().padStart(2, "0");
+        return `${pad(day)}-${mon}-${year} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}${ampm}`;
+      }
+
+      // Initialize variables for color grouping
       const rowColors = ["#ffeeee", "#eeffee", "#eeeeff", "#fff0f0", "#f0fff0", "#f0f0ff"];
       let colorIndex = 0;
       let lastTime = null;
+
+      // Sort logs oldest to newest
+      const sortedLogs = logs.slice().reverse();
     %>
 
     <table>
@@ -119,26 +140,24 @@
         </tr>
       </thead>
       <tbody>
-        <% 
-          const sortedLogs = logs.slice().reverse(); // process oldest->newest
-          sortedLogs.forEach((log) => {
-            const currentTime = new Date(log.time).getTime();
-            if (lastTime !== null) {
-              const diff = currentTime - lastTime;
-              if (diff > 2000) {
-                colorIndex = (colorIndex + 1) % rowColors.length;
-              }
+        <% sortedLogs.forEach((log) => {
+          const currentTime = new Date(log.time).getTime();
+          if (lastTime !== null) {
+            const diff = currentTime - lastTime;
+            if (diff > 2000) {
+              colorIndex = (colorIndex + 1) % rowColors.length;
             }
-            lastTime = currentTime;
-            const formatted = formatDateTime(log.time);
-            const rowColor = rowColors[colorIndex];
+          }
+          lastTime = currentTime;
+          const formatted = formatDateTime(log.time);
+          const rowColor = rowColors[colorIndex];
         %>
-          <tr style="background-color: <%= rowColor %>;">
-            <td><%= formatted %></td>
-            <td><%= log.ip %></td>
-            <td><%= log.userAgent %></td>
-          </tr>
-        <% }); %>
+        <tr style="background-color: <%= rowColor %>;">
+          <td><%= formatted %></td>
+          <td><%= log.ip %></td>
+          <td><%= log.userAgent %></td>
+        </tr>
+        <% }) %>
       </tbody>
     </table>
 
