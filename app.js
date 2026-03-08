@@ -178,6 +178,7 @@ app.get('/logs/:id', requireLogin, (req, res) => {
       }
       db.query('SELECT * FROM logs WHERE pixelId = $1 ORDER BY time DESC', [pixelId])
         .then(logsResult => {
+          console.log('Logs passed to template:', logsResult.rows);
           res.render('logs', { pixel: result.rows[0], logs: logsResult.rows });
         })
         .catch(err => {
