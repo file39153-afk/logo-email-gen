@@ -136,48 +136,38 @@ app.post('/create', requireLogin, (req, res) => {
     });
 });
 
-// Serve pixel image and log load
 app.get('/logo/:id.png', (req, res) => {
   const pixelId = req.params.id;
   console.log(`Loading pixel image for ID: ${pixelId}`);
+
   const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || '';
-  const now = new Date().toISOString(); // <-- move this line here
-  console.log('Captured User-Agent:', userAgent);
-db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
-  .then(() => {
-    // ...
-  })
-  // ...
-  .catch(err => {
-    console.error('Error inserting log:', err);
-  });
-  const now = new Date().toISOString();
-  db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
 
-  // Check pixel exists
+  // Declare and assign 'now' before any database queries
+  const now = new Date().toISOString();
+  console.log('Captured User-Agent:', userAgent);
+
+  // Log the load event
+  db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
+    .catch(err => {
+      console.error('Error inserting log:', err);
+    });
+
+  // Check if pixel exists
   db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
     .then(result => {
       if (result.rows.length === 0) {
         console.warn(`Pixel not found: ${pixelId}`);
         return res.status(404).send('Pixel not found');
       }
-      // Log load
-      db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
-        .then(() => {
-          res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
-        })
-        .catch(err => {
-          console.error('Error inserting log:', err);
-          res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
-        });
+      // Send pixel image
+      res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
     })
     .catch(err => {
       console.error('Error retrieving pixel:', err);
       res.status(500).send('Server error');
     });
 });
-
 // View logs for a pixel
 app.get('/logs/:id', requireLogin, (req, res) => {
   const pixelId = req.params.id;
