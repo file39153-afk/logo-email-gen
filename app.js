@@ -123,10 +123,10 @@ app.get('/', requireLogin, (req, res) => {
 app.post('/create', requireLogin, (req, res) => {
   const { name } = req.body;
   const pixelId = uuidv4();
-  const createdAt = new Date().toISOString();
+  const createdat = new Date().toISOString();
 
 
-  db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdAt])
+  db.query('INSERT INTO pixels (id, name, createdat) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdAt])
     .then(() => {
       res.redirect('/');
     })
