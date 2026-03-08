@@ -22,7 +22,7 @@
       background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
-    /* Container for smooth, cohesive look */
+    /* Container styling */
     .container {
       background: #f0f0f0;
       padding: 40px 30px;
@@ -87,17 +87,17 @@
       transform: translateY(-2px);
     }
 
-    /* Table styles with matching borders */
+    /* Table with matching borders */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
       font-size: 0.95rem;
-      border: 2px solid #ccc; /* Outer border for table */
+      border: 2px solid #ccc;
     }
     th, td {
       padding: 15px;
-      border: 2px solid #ccc; /* Match table border */
+      border: 2px solid #ccc;
       text-align: left;
       background: #fff;
     }
@@ -106,23 +106,23 @@
       font-weight: 600;
     }
 
-    /* Input displaying URL - match border style */
+    /* Input for URL display */
     input[type="text"] {
       border: 2px solid #ccc;
       border-radius: 8px;
       background: #fff;
     }
 
-    /* Actions cell layout and matching borders */
+    /* Actions cell: vertically center, same height as others */
     td.actions {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      min-width: 180px;
+      min-height: 60px; /* match height of other cells */
     }
 
-    /* Both buttons styled with matching borders and rounded corners */
+    /* Buttons inside actions */
     .actions button {
       padding: 8px 12px;
       border-radius: 8px;
@@ -132,6 +132,7 @@
       font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.2s;
+      height: 100%; /* fill the td height */
     }
     .actions button:hover {
       background-color: #0056b3;
@@ -139,7 +140,7 @@
       transform: translateY(-2px);
     }
 
-    /* View Logs styled as a button for consistency */
+    /* View Logs as button style */
     .log-btn {
       display: inline-block;
       padding: 8px 12px;
@@ -171,8 +172,8 @@
       }
       td.actions {
         flex-direction: column;
-        min-width: auto;
-        gap: 8px;
+        min-height: auto;
+        height: auto;
       }
     }
   </style>
