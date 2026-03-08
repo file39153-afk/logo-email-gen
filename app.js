@@ -126,7 +126,7 @@ app.post('/create', requireLogin, (req, res) => {
   const createdat = new Date().toISOString();
 
 
-  db.query('INSERT INTO pixels (id, name, createdat) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdAt])
+  db.query('INSERT INTO pixels (id, name, createdat) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdat])
     .then(() => {
       res.redirect('/');
     })
