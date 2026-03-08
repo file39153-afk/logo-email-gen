@@ -75,7 +75,11 @@
   <div class="container">
     <a href="/" class="back-btn">← Back to Dashboard</a>
     <h1>Logs for "<%= pixel.name %>"</h1>
-    <h2>Created at: <%= new Date(pixel.createdAt).toLocaleString() %></h2>
+    <%
+    const createdAtDate = new Date(pixel.createdat);
+    const formattedCreatedAt = isNaN(createdAtDate.getTime()) ? 'Invalid Date' : createdAtDate.toLocaleString();
+  %>
+  <h2>Created at: <%= formattedCreatedAt %></h2>
     <!-- Debug: dump logs array as JSON -->
     <h2>Debug: Raw logs data</h2>
     <pre><%= JSON.stringify(logs, null, 2) %></pre>
