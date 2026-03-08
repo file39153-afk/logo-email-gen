@@ -88,7 +88,31 @@ app.get('/logout', (req, res) => {
 });
 
 // --------- Main site routes ---------
+// API to create a new pixel (logo)
+app.post('/api/create', (req, res) => {
+  const { name } = req.body;
+  const pixelId = uuidv4();
+  const createdAt = new Date().toISOString();
 
+  const insertPixel = 'INSERT INTO pixels (id, name, createdAt) VALUES (?, ?, ?)';
+  db.run(insertPixel, [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdAt], (err) => {
+    if (err) {
+      console.error('Error inserting pixel:', err);
+      return res.status(500).json({ success: false, error: 'Error creating pixel' });
+    }
+    res.json({ success: true, id: pixelId });
+  });
+});
+
+// API to get logs for a pixel
+app.get('/api/logs/:id', (req, res) => {
+  const pixelId = req.params.id;
+  const selectLogs = 'SELECT * FROM logs WHERE pixelId = ? ORDER BY time DESC';
+  db.all(selectLogs, [pixelId], (err, logs) => {
+    if (err) return res.status(500).json({ error: 'Error fetching logs' });
+    res.json(logs);
+  });
+});
 // Dashboard route: list pixels (protected)
 app.get('/', requireLogin, (req, res) => {
   const query = 'SELECT * FROM pixels ORDER BY createdAt DESC';
