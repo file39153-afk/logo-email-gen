@@ -5,60 +5,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login</title>
   <style>
-    body {
+    /* Reset some default styles */
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
+    }
+
+    /* Body with a beautiful gradient background and centered content */
+    body {
       height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #a8a8a8, #d3d3d3); /* grey gradient background */
-      font-family: Arial, sans-serif;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc); /* Vibrant gradient background */
     }
+
+    /* Stylish login box */
     .login-box {
-      background: #f0f0f0; /* light grey background for the box */
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      width: 300px;
+      background: linear-gradient(135deg, #f0f0f0, #d9d9d9); /* subtle gradient for contrast */
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      width: 350px;
       max-width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
+
+    /* Slight grow effect on hover */
+    .login-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+
+    /* Heading styles */
     h2 {
-      text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      font-size: 2rem;
       color: #333;
+      letter-spacing: 1px;
     }
+
+    /* Error message styles */
+    .error {
+      color: #c0392b;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    /* Form styles */
+    form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Input styles with transition */
     input[type="text"],
     input[type="password"] {
-      width: 100%;
-      padding: 10px 15px;
-      margin-bottom: 15px;
+      padding: 12px 15px;
+      margin-bottom: 20px;
       border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 1em;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
+
+    /* Focus effect for inputs */
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: #2575fc;
+      box-shadow: 0 0 8px rgba(37, 117, 252, 0.3);
+    }
+
+    /* Button styles */
     button {
-      width: 100%;
-      padding: 10px 15px;
-      background-color: #555;
+      padding: 14px;
+      background-color: #2575fc;
       color: #fff;
       border: none;
-      border-radius: 5px;
-      font-size: 1em;
+      border-radius: 8px;
+      font-size: 1.1rem;
       cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
     }
+
+    /* Hover effect for button */
     button:hover {
-      background-color: #333;
+      background-color: #1a5edb;
+      transform: translateY(-2px);
     }
-    .error {
-      color: red;
-      text-align: center;
-      margin-bottom: 15px;
+
+    /* Responsive font for smaller screens */
+    @media (max-width: 400px) {
+      body {
+        padding: 20px;
+      }
+      .login-box {
+        padding: 30px 20px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="login-box">
-    <h2>Login</h2>
+    <h2>Welcome Back</h2>
     <% if (typeof error !== 'undefined') { %>
       <div class="error"><%= error %></div>
     <% } %>
