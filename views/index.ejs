@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Logo Manager</title>
   <style>
-    /* Reset and base styles */
+    /* Reset default styles */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    /* Body with gradient background & centered content */
+    /* Body with gradient background & center content */
     body {
       height: 100vh;
       display: flex;
@@ -22,7 +22,7 @@
       background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
-    /* Container styling */
+    /* Container styling for clean look */
     .container {
       background: #f0f0f0;
       padding: 40px 30px;
@@ -30,10 +30,9 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       max-width: 950px;
       width: 90%;
-      transition: all 0.3s ease;
     }
 
-    /* Headings */
+    /* Headings styles */
     h1 {
       text-align: center;
       margin-bottom: 20px;
@@ -87,48 +86,50 @@
       transform: translateY(-2px);
     }
 
-    /* Table styling with matching borders */
+    /* Table styles with consistent borders */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
       font-size: 0.95rem;
-      border: 2px solid #ccc; /* Outer border for table */
+      border: 2px solid #ccc;
     }
     th, td {
       padding: 15px;
-      border: 2px solid #ccc; /* Match table border */
+      border: 2px solid #ccc;
       background: #fff;
-      vertical-align: middle; /* ensure vertical alignment */
+      vertical-align: middle;
     }
     th {
       background-color: #e9ecef;
       font-weight: 600;
     }
 
-    /* Input for URL display - match border style */
+    /* Input for URL display */
     input[type="text"] {
       border: 2px solid #ccc;
       border-radius: 8px;
       background: #fff;
+      width: 100%;
+      font-family: monospace;
     }
 
-    /* Actions cell: Flex container to stretch height */
+    /* Actions cell: flex column to align buttons vertically, fixed height */
     td.actions {
       display: flex;
-      align-items: stretch; /* stretch contents vertically */
-      justify-content: center;
-      gap: 10px;
-      height: 100%; /* full height of cell */
+      flex-direction: column;
+      justify-content: stretch;
+      align-items: stretch;
+      height: 60px; /* Fixed height for consistency */
+      gap: 8px;
     }
 
-    /* Buttons inside actions: fill height and match borders */
-    .actions button {
-      flex: 1; /* fill available space */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 12px;
+    /* Fix button size for uniform look */
+    .actions button,
+    .log-btn {
+      height: 40px; /* Fixed height for all action buttons */
+      line-height: 40px; /* vertically center text */
+      width: 100%;
       border-radius: 8px;
       border: 2px solid #007bff;
       background-color: #007bff;
@@ -136,31 +137,20 @@
       font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.2s;
-      height: 100%;
-      min-width: 0; /* so it shrinks if needed */
     }
+    /* Hover effects for buttons */
     .actions button:hover {
       background-color: #0056b3;
       border-color: #0056b3;
       transform: translateY(-2px);
     }
-
-    /* View Logs styled as button for consistency */
     .log-btn {
-      display: inline-block;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 2px solid #28a745;
+      border-color: #28a745;
       background-color: #28a745;
-      color: #fff;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: all 0.2s;
     }
     .log-btn:hover {
       background-color: #218838;
       border-color: #218838;
-      transform: translateY(-2px);
     }
 
     /* Responsive adjustments */
@@ -235,7 +225,7 @@
                 <input type="text" readonly value="<%= baseUrl + '/logo/' + pixel.id + '.png' %>" />
               </td>
               <td class="actions">
-                <button class="actions copy-btn" onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
+                <button onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
                 <a href="/logs/<%= pixel.id %>" class="log-btn">View Logs</a>
               </td>
             </tr>
