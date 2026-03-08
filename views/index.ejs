@@ -64,7 +64,6 @@
       border-radius: 10px;
       font-size: 1rem;
       background: #fff;
-      transition: border-color 0.3s, box-shadow 0.3s;
     }
     input[type="text"]:focus {
       border-color: #007bff;
@@ -79,7 +78,6 @@
       color: #fff;
       font-size: 1.1rem;
       cursor: pointer;
-      transition: all 0.3s;
     }
     button:hover {
       background-color: #0056b3;
@@ -114,21 +112,20 @@
       font-family: monospace;
     }
 
-    /* Actions cell: flex column to align buttons vertically, fixed height */
+    /* Actions cell: fixed height, flex column to stack buttons */
     td.actions {
+      height: 80px; /* fixed height as per your request */
       display: flex;
       flex-direction: column;
-      justify-content: stretch;
+      justify-content: space-around; /* space out buttons evenly */
       align-items: stretch;
-      height: 60px; /* Fixed height for consistency */
-      gap: 8px;
     }
 
-    /* Fix button size for uniform look */
+    /* Buttons: fixed height of 20px, fill width */
     .actions button,
     .log-btn {
-      height: 40px; /* Fixed height for all action buttons */
-      line-height: 40px; /* vertically center text */
+      height: 20px;
+      line-height: 20px;
       width: 100%;
       border-radius: 8px;
       border: 2px solid #007bff;
@@ -136,17 +133,18 @@
       color: #fff;
       font-size: 0.9rem;
       cursor: pointer;
+      padding: 0;
       transition: all 0.2s;
+    }
+    /* Different styles for log button */
+    .log-btn {
+      border-color: #28a745;
+      background-color: #28a745;
     }
     /* Hover effects for buttons */
     .actions button:hover {
       background-color: #0056b3;
       border-color: #0056b3;
-      transform: translateY(-2px);
-    }
-    .log-btn {
-      border-color: #28a745;
-      background-color: #28a745;
     }
     .log-btn:hover {
       background-color: #218838;
@@ -166,8 +164,15 @@
         font-size: 0.9rem;
       }
       td.actions {
-        flex-direction: column;
         height: auto;
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: wrap;
+      }
+      .actions button,
+      .log-btn {
+        height: 30px;
+        width: auto;
       }
     }
   </style>
