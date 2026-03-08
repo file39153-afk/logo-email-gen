@@ -22,7 +22,7 @@
       background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
-    /* Container with smooth style */
+    /* Container for smooth, cohesive look */
     .container {
       background: #f0f0f0;
       padding: 40px 30px;
@@ -33,7 +33,7 @@
       transition: all 0.3s ease;
     }
 
-    /* Heading styles */
+    /* Headings */
     h1 {
       text-align: center;
       margin-bottom: 20px;
@@ -61,9 +61,10 @@
       flex: 1;
       min-width: 200px;
       padding: 12px 15px;
-      border: 1px solid #ccc;
+      border: 2px solid #ccc;
       border-radius: 10px;
       font-size: 1rem;
+      background: #fff;
       transition: border-color 0.3s, box-shadow 0.3s;
     }
     input[type="text"]:focus {
@@ -79,70 +80,81 @@
       color: #fff;
       font-size: 1.1rem;
       cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
+      transition: all 0.3s;
     }
     button:hover {
       background-color: #0056b3;
       transform: translateY(-2px);
     }
 
-    /* Table styles */
+    /* Table styles with matching borders */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
       font-size: 0.95rem;
+      border: 2px solid #ccc; /* Outer border for table */
     }
     th, td {
       padding: 15px;
-      border: 1px solid #ddd;
+      border: 2px solid #ccc; /* Match table border */
       text-align: left;
+      background: #fff;
     }
     th {
       background-color: #e9ecef;
       font-weight: 600;
     }
+
+    /* Input displaying URL - match border style */
     input[type="text"] {
-      border: none;
-      background: transparent;
-      font-family: monospace;
-      width: 100%;
-      cursor: pointer;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
     }
-    /* Style the actions cell to match height and centering */
+
+    /* Actions cell layout and matching borders */
     td.actions {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      min-width: 150px;
+      min-width: 180px;
     }
-    /* Style links/buttons inside actions */
-    .actions a, .actions button {
-      display: inline-block;
+
+    /* Both buttons styled with matching borders and rounded corners */
+    .actions button {
       padding: 8px 12px;
       border-radius: 8px;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-    /* Copy button styling */
-    .actions button {
+      border: 2px solid #007bff;
       background-color: #007bff;
       color: #fff;
-      border: none;
+      font-size: 0.9rem;
       cursor: pointer;
+      transition: all 0.2s;
     }
     .actions button:hover {
       background-color: #0056b3;
+      border-color: #0056b3;
       transform: translateY(-2px);
     }
-    /* View logs link style */
-    .actions a {
-      color: #007bff;
+
+    /* View Logs styled as a button for consistency */
+    .log-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid #28a745;
+      background-color: #28a745;
+      color: #fff;
+      font-size: 0.9rem;
       text-decoration: none;
+      transition: all 0.2s;
     }
-    .actions a:hover {
-      text-decoration: underline;
+    .log-btn:hover {
+      background-color: #218838;
+      border-color: #218838;
+      transform: translateY(-2px);
     }
 
     /* Responsive adjustments */
@@ -160,6 +172,7 @@
       td.actions {
         flex-direction: column;
         min-width: auto;
+        gap: 8px;
       }
     }
   </style>
@@ -177,7 +190,7 @@
 
     <hr />
 
-    <!-- List logos -->
+    <!-- List existing logos -->
     <h2>Existing Logos</h2>
     <% if (pixels.length === 0) { %>
       <p style="text-align:center; margin-top:20px;">No logos created yet.</p>
@@ -217,8 +230,8 @@
                 <input type="text" readonly value="<%= baseUrl + '/logo/' + pixel.id + '.png' %>" />
               </td>
               <td class="actions">
-                <button onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
-                <a href="/logs/<%= pixel.id %>">View Logs</a>
+                <button class="actions copy-btn" onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
+                <a href="/logs/<%= pixel.id %>" class="log-btn">View Logs</a>
               </td>
             </tr>
           <% }) %>
