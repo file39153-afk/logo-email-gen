@@ -7,12 +7,15 @@ const session = require('express-session');
 const app = express();
 const SECRET_KEY = process.env.SECRET_KEY; // your secret key
 
+// Trust proxy if behind a proxy/load balancer
+app.set('trust proxy', true);
+
 // Session setup
 app.use(session({
   secret: SECRET_KEY,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // change to true if HTTPS
+  cookie: { secure: false } // change to true if deploying with HTTPS
 }));
 
 // Set view engine
@@ -32,7 +35,6 @@ const db = new Client({
 db.connect()
   .then(() => {
     console.log('Connected to PostgreSQL database.');
-    // Create tables if they do not exist
     return Promise.all([
       db.query(`
         CREATE TABLE IF NOT EXISTS pixels (
@@ -74,6 +76,9 @@ const requireLogin = (req, res, next) => {
   }
 };
 
+// Middleware to trust proxy for correct IP
+app.set('trust proxy', true);
+
 // --------- Login Routes ---------
 app.get('/login', (req, res) => {
   res.render('login');
@@ -97,7 +102,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// --------- Main routes ---------
+// --------- Main site routes ---------
 
 // Dashboard
 app.get('/', requireLogin, (req, res) => {
@@ -143,7 +148,7 @@ app.get('/logo/:id.png', (req, res) => {
 
       // Log load event
       const now = new Date().toISOString();
-      const ip = req.ip;
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       const userAgent = req.headers['user-agent'] || '';
 
       db.query(
@@ -160,7 +165,7 @@ app.get('/logo/:id.png', (req, res) => {
     });
 });
 
-// View logs for a pixel
+// View logs for a specific pixel
 app.get('/logs/:id', requireLogin, (req, res) => {
   const pixelId = req.params.id;
   db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
@@ -184,7 +189,7 @@ app.get('/logs/:id', requireLogin, (req, res) => {
     });
 });
 
-// --------- Example create route ---------
+// Example create route (if needed)
 app.post('/create', (req, res) => {
   const { name } = req.body;
   const pixelId = 'pixel_' + Math.random().toString(36).slice(2, 10);
@@ -192,7 +197,7 @@ app.post('/create', (req, res) => {
 
   db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId}`, createdAt])
     .then(() => {
-      res.redirect('/'); // or send JSON if preferred
+      res.redirect('/'); // or respond with JSON
     })
     .catch(err => {
       console.error('Error creating pixel:', err);
