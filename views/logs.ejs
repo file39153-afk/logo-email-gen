@@ -1,116 +1,148 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Logo Manager - Logs</title>
-    <meta charset="UTF-8" />
-    <style>
-      body {
-        font-family: sans-serif;
-        margin: 20px;
-      }
-      .container {
-        max-width: 900px;
-        margin: auto;
-      }
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Logo Manager - Logs</title>
+  <style>
+    /* Reset some default styles */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 20px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: #f0f0f0;
+      padding: 40px 30px;
+      border-radius: 15px;
+      max-width: 950px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.2rem;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      color: #555;
+    }
+
+    /* Back button similar to your index style */
+    a.back-btn {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    a.back-btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* Table styling similar to your index */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    thead {
+      background-color: #e9ecef;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ccc;
+      text-align: left;
+    }
+
+    tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    /* Responsive font size */
+    @media(max-width: 600px){
       table {
-        border-collapse: collapse;
-        width: 100%;
+        font-size: 0.9rem;
       }
-      th,
-      td {
-        padding: 8px;
-        border: 1px solid #ccc;
-        vertical-align: top;
-      }
-    </style>
-  </head>
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-btn">← Back to Dashboard</a>
+    <h1>Logs for "<%= pixel.name %>"</h1>
+    <h2>Created at: <%= new Date(pixel.createdAt).toLocaleString() %></h2>
 
-  <body>
-    <div class="container">
-      <h1>Logs for <%= pixel.name %></h1>
+    <p style="margin-top:1em; font-style:italic;">
+      You may see extra logs if bots (e.g., GoogleImageProxy via ggpht.com) or email clients repeatedly load the image. Check timestamps to determine if it's genuine user activity or automated fetches.
+    </p>
 
-      <% 
-        // 1) Date/time formatting for both "Created At" and each log
-        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        function formatDateTime(isoString) {
-          const d = new Date(isoString);
-          let day  = d.getDate();
-          let mon  = months[d.getMonth()];
-          let year = d.getFullYear();
+    <%
+      // Color grouping logic based on 2-second gaps
+      const rowColors = ["#ffeeee", "#eeffee", "#eeeeff", "#fff0f0", "#f0fff0", "#f0f0ff"];
+      let colorIndex = 0;
+      let lastTime = null;
+    %>
 
-          let hours   = d.getHours();
-          let minutes = d.getMinutes();
-          let seconds = d.getSeconds();
-
-          let ampm = (hours >= 12) ? "pm" : "am";
-          // convert 0-23 -> 1-12
-          hours = (hours === 0) ? 12 : (hours > 12 ? hours - 12 : hours);
-
-          const pad = (num) => num.toString().padStart(2, "0");
-          return `${pad(day)}-${mon}-${year} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}${ampm}`;
-        }
-
-        // Convert "Created At" to local time
-        const createdLocal = formatDateTime(pixel.createdAt);
-      %>
-
-      <p><strong>Pixel ID:</strong> <%= pixel.id %></p>
-      <p><strong>Created At:</strong> <%= createdLocal %></p>
-
-      <h2>Open Events</h2>
-      <p style="font-style: italic; margin-bottom: 1em;">
-        You may see extra logs if bots (for example, GoogleImageProxy via `ggpht.com`) or the email client repeatedly load the image. Check each log’s timestamp to determine whether it’s a genuine user open or just a proxy/bot fetching the image again.
-      </p>
-
-      <%
-        // 2) Color-grouping logic for logs under 2-second intervals
-        const rowColors = ["#ffeeee", "#eeffee", "#eeeeff", "#fff0f0", "#f0fff0", "#f0f0ff"];
-        let colorIndex = 0;
-        let lastTime = null; // numeric timestamp in ms
-      %>
-
-      <table>
-        <colgroup>
-          <col style="width: 220px;" />
-          <col style="width: 160px;" />
-          <col style="width: auto;" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>IP</th>
-            <th>User-Agent</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% 
-          // If logs come from DB newest-first, reverse to process oldest->newest
-          const sortedLogs = logs.slice().reverse();
-
+    <table>
+      <colgroup>
+        <col style="width: 220px;" />
+        <col style="width: 160px;" />
+        <col style="width: auto;" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>IP</th>
+          <th>User-Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% 
+          const sortedLogs = logs.slice().reverse(); // process oldest->newest
           sortedLogs.forEach((log) => {
             const currentTime = new Date(log.time).getTime();
-
             if (lastTime !== null) {
-              const diff = currentTime - lastTime; // ms
+              const diff = currentTime - lastTime;
               if (diff > 2000) {
                 colorIndex = (colorIndex + 1) % rowColors.length;
               }
             }
             lastTime = currentTime;
-
             const formatted = formatDateTime(log.time);
             const rowColor = rowColors[colorIndex];
-          %>
-            <tr style="background-color: <%= rowColor %>;">
-              <td><%= formatted %></td>
-              <td><%= log.ip %></td>
-              <td><%= log.userAgent %></td>
-            </tr>
-          <% }); %>
-        </tbody>
-      </table>
+        %>
+          <tr style="background-color: <%= rowColor %>;">
+            <td><%= formatted %></td>
+            <td><%= log.ip %></td>
+            <td><%= log.userAgent %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
 
-      <p><a href="/">← Back to Dashboard</a></p>
-    </div>
-  </body>
+    <p style="margin-top:2em;"><a href="/">← Back to Dashboard</a></p>
+  </div>
+</body>
 </html>
