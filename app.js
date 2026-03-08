@@ -117,7 +117,7 @@ app.post('/create', requireLogin, (req, res) => {
 });
 
 // --------- Image load route with logging ---------
-app.get('/logo/:id', (req, res) => {
+app.get('/logo/:id.png', (req, res) => {
   const pixelId = req.params.id;
 
   // Log request info for debugging
