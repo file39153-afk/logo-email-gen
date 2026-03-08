@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const db = new Client({
   host: 'dpg-d6mjpc4hg0os739l80l0-a', // your host
   port: 5432,
-  database: 'dpg-d6mjpc4hg0os739l80l0-a',
+  database: 'logo02_tyxs',
   user: 'logo02_tyxs_user',
   password: '38yaB9rM2tsUi49MuR0pNomBiKzH3EeQ'
 });
