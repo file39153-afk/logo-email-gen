@@ -142,6 +142,7 @@ app.get('/logo/:id.png', (req, res) => {
   const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || '';
   const now = new Date().toISOString();
+  db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
 
   // Check pixel exists
   db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
