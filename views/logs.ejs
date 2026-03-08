@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Logo Manager - Logs</title>
   <style>
-    /* Reset some default styles */
-    * {
-      box-sizing: border-box;
-    }
-
+    /* (your styles remain unchanged) */
+    * { box-sizing: border-box; }
     body {
       margin: 20px;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -17,7 +14,6 @@
       display: flex;
       justify-content: center;
     }
-
     .container {
       background: #f0f0f0;
       padding: 40px 30px;
@@ -26,22 +22,18 @@
       width: 100%;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
-
     h1 {
       text-align: center;
       margin-bottom: 10px;
       font-size: 2.2rem;
       color: #333;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 15px;
       font-size: 1.5rem;
       color: #555;
     }
-
-    /* Back button styling */
     a.back-btn {
       display: inline-block;
       margin-bottom: 20px;
@@ -55,8 +47,6 @@
     a.back-btn:hover {
       background-color: #0056b3;
     }
-
-    /* Table styling similar to your index */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -65,26 +55,19 @@
       overflow: hidden;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-
     thead {
       background-color: #e9ecef;
     }
-
     th, td {
       padding: 12px 15px;
       border-bottom: 1px solid #ccc;
       text-align: left;
     }
-
     tbody tr:hover {
       background-color: #f1f1f1;
     }
-
-    /* Responsive font size */
     @media(max-width: 600px){
-      table {
-        font-size: 0.9rem;
-      }
+      table { font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -94,13 +77,15 @@
     <h1>Logs for "<%= pixel.name %>"</h1>
     <h2>Created at: <%= new Date(pixel.createdAt).toLocaleString() %></h2>
 
-
-
-    <!-- Define the date formatter function at the top of the template -->
+    <!-- Date formatting function and variables -->
     <%
       const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
       function formatDateTime(isoString) {
         const d = new Date(isoString);
+        if (isNaN(d.getTime())) {
+          return "Invalid Date"; // fallback
+        }
         let day  = d.getDate();
         let mon  = months[d.getMonth()];
         let year = d.getFullYear();
@@ -115,12 +100,11 @@
         return `${pad(day)}-${mon}-${year} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}${ampm}`;
       }
 
-      // Initialize variables for color grouping
-      const rowColors = ["#ffeeee", "#eeffee", "#eeeeff", "#fff0f0", "#f0fff0", "#f0f0ff"];
+      const rowColors = ["#ffe0e0", "#e0ffe0", "#e0e0ff", "#fff0f0", "#f0fff0", "#f0f0ff"];
       let colorIndex = 0;
       let lastTime = null;
 
-      // Sort logs oldest to newest
+      // Sort logs in chronological order
       const sortedLogs = logs.slice().reverse();
     %>
 
@@ -139,15 +123,19 @@
       </thead>
       <tbody>
         <% sortedLogs.forEach((log) => {
-          const currentTime = new Date(log.time).getTime();
-          if (lastTime !== null) {
+          const logDate = new Date(log.time);
+          const currentTime = isNaN(logDate.getTime()) ? null : logDate.getTime();
+
+          if (lastTime !== null && currentTime !== null) {
             const diff = currentTime - lastTime;
             if (diff > 2000) {
+              // Change color if time difference > 2 seconds
               colorIndex = (colorIndex + 1) % rowColors.length;
             }
           }
           lastTime = currentTime;
-          const formatted = formatDateTime(log.time);
+
+          const formatted = (currentTime === null) ? "Invalid Date" : formatDateTime(log.time);
           const rowColor = rowColors[colorIndex];
         %>
         <tr style="background-color: <%= rowColor %>;">
