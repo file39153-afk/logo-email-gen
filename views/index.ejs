@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Logo Manager</title>
   <style>
-    /* Reset some default styles */
+    /* Reset and base styles */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    /* Body with gradient background and centered content */
+    /* Body with gradient background & centered content */
     body {
       height: 100vh;
       display: flex;
@@ -87,43 +87,47 @@
       transform: translateY(-2px);
     }
 
-    /* Table with matching borders */
+    /* Table styling with matching borders */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
       font-size: 0.95rem;
-      border: 2px solid #ccc;
+      border: 2px solid #ccc; /* Outer border for table */
     }
     th, td {
       padding: 15px;
-      border: 2px solid #ccc;
-      text-align: left;
+      border: 2px solid #ccc; /* Match table border */
       background: #fff;
+      vertical-align: middle; /* ensure vertical alignment */
     }
     th {
       background-color: #e9ecef;
       font-weight: 600;
     }
 
-    /* Input for URL display */
+    /* Input for URL display - match border style */
     input[type="text"] {
       border: 2px solid #ccc;
       border-radius: 8px;
       background: #fff;
     }
 
-    /* Actions cell: vertically center, same height as others */
+    /* Actions cell: Flex container to stretch height */
     td.actions {
+      display: flex;
+      align-items: stretch; /* stretch contents vertically */
+      justify-content: center;
+      gap: 10px;
+      height: 100%; /* full height of cell */
+    }
+
+    /* Buttons inside actions: fill height and match borders */
+    .actions button {
+      flex: 1; /* fill available space */
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      min-height: 60px; /* match height of other cells */
-    }
-
-    /* Buttons inside actions */
-    .actions button {
       padding: 8px 12px;
       border-radius: 8px;
       border: 2px solid #007bff;
@@ -132,7 +136,8 @@
       font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.2s;
-      height: 100%; /* fill the td height */
+      height: 100%;
+      min-width: 0; /* so it shrinks if needed */
     }
     .actions button:hover {
       background-color: #0056b3;
@@ -140,7 +145,7 @@
       transform: translateY(-2px);
     }
 
-    /* View Logs as button style */
+    /* View Logs styled as button for consistency */
     .log-btn {
       display: inline-block;
       padding: 8px 12px;
@@ -172,7 +177,6 @@
       }
       td.actions {
         flex-direction: column;
-        min-height: auto;
         height: auto;
       }
     }
