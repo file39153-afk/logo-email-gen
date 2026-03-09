@@ -76,12 +76,9 @@
     <a href="/" class="back-btn">← Back to Dashboard</a>
     <h1>Logs for "<%= pixel.name %>"</h1>
     <%
-    const createdAtDate = new Date(pixel.createdat);
-    const formattedCreatedAt = isNaN(createdAtDate.getTime()) ? 'Invalid Date' : createdAtDate.toLocaleString();
-  %>
-  <h2>Created at: <%= formattedCreatedAt %></h2>
-    <!-- Date formatting function and variables -->
-    <%
+      const createdAtDate = new Date(pixel.createdat);
+      const formattedCreatedAt = isNaN(createdAtDate.getTime()) ? 'Invalid Date' : createdAtDate.toLocaleString();
+
       const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
       function formatDateTime(isoString) {
@@ -107,7 +104,7 @@
       let colorIndex = 0;
       let lastTime = null;
 
-      // Sort logs in chronological order
+      // Sort logs in reverse chronological order
       const sortedLogs = logs.slice().reverse();
     %>
 
@@ -116,16 +113,18 @@
         <col style="width: 220px;" />
         <col style="width: 160px;" />
         <col style="width: auto;" />
+        <col style="width: 200px;" /> <!-- Location column width -->
       </colgroup>
       <thead>
         <tr>
           <th>Time</th>
           <th>IP</th>
           <th>User-Agent</th>
+          <th>Location</th> <!-- New column header -->
         </tr>
       </thead>
       <tbody>
-        <% sortedLogs.forEach((log) => {
+        <% logs.forEach((log) => {
           const logDate = new Date(log.time);
           const currentTime = isNaN(logDate.getTime()) ? null : logDate.getTime();
 
@@ -140,11 +139,19 @@
 
           const formatted = (currentTime === null) ? "Invalid Date" : formatDateTime(log.time);
           const rowColor = rowColors[colorIndex];
+
+          // Build location string
+          const locationParts = [];
+          if (log.city) locationParts.push(log.city);
+          if (log.region) locationParts.push(log.region);
+          if (log.country) locationParts.push(log.country);
+          const locationStr = locationParts.join(', ');
         %>
         <tr style="background-color: <%= rowColor %>;">
           <td><%= formatted %></td>
           <td><%= log.ip %></td>
           <td><%= log.useragent %></td>
+          <td><%= locationStr || 'N/A' %></td> <!-- Display location -->
         </tr>
         <% }) %>
       </tbody>
@@ -152,4 +159,3 @@
   </div>
 </body>
 </html>
- 
