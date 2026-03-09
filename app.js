@@ -168,25 +168,6 @@ app.get('/logo/:id.png', (req, res) => {
       res.status(500).send('Server error');
     });
 });
-
-// Route to delete a pixel by ID
-app.post('/delete/:id', requireLogin, (req, res) => {
-  const pixelId = req.params.id;
-  // Delete associated logs first (optional)
-  db.query('DELETE FROM logs WHERE pixelId = $1', [pixelId])
-    .then(() => {
-      // Delete the pixel
-      return db.query('DELETE FROM pixels WHERE id = $1', [pixelId]);
-    })
-    .then(() => {
-      res.redirect('/');
-    })
-    .catch(err => {
-      console.error('Error deleting pixel:', err);
-      res.status(500).send('Error deleting pixel');
-    });
-});
-
 // View logs for a pixel
 app.get('/logs/:id', requireLogin, (req, res) => {
   const pixelId = req.params.id;
