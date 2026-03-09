@@ -50,7 +50,7 @@
 
     /* Create logo form styles */
     form {
-      display: flex !important;
+      display: flex: !important;
       gap: 10px;
       margin-bottom: 20px;
       flex-wrap: wrap;
@@ -114,7 +114,6 @@
       color: #fff;
       font-weight: 500;
       transition: background-color 0.2s;
-      margin-right: 8px;
     }
     .log-btn:hover {
       background-color: #218838;
@@ -159,7 +158,8 @@
             <th>Name</th>
             <th>Created</th>
             <th>Logo URL</th>
-            <th>Actions</th> <!-- Only one Actions column -->
+            <th>Actions</th>
+            <th>Delete<th>
           </tr>
         </thead>
         <tbody>
@@ -190,6 +190,8 @@
               <td style="text-align:center;">
                 <button onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
                 <a href="/logs/<%= pixel.id %>" class="log-btn">View Logs</a>
+              </td>
+              <td>
                 <form action="/delete/<%= pixel.id %>" method="POST" style="display:inline;">
                   <button type="submit" onclick="return confirm('Are you sure you want to delete this pixel?');">Delete</button>
                 </form>
