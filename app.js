@@ -3,6 +3,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { Client } = require('pg');
 const session = require('express-session');
+const axios = require('axios');
 
 const app = express();
 
@@ -52,7 +53,8 @@ db.connect()
           pixelId TEXT,
           time TEXT,
           ip TEXT,
-          userAgent TEXT
+          userAgent TEXT,
+          location TEXT
         )
       `)
     ]);
@@ -63,6 +65,21 @@ db.connect()
 const getClientIp = (req) => {
   return req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
 };
+
+/**
+ * Fetch geolocation info based on IP address.
+ * Uses ipinfo.io. Make sure to set IPINFO_TOKEN as an environment variable.
+ */
+async function getGeolocation(ip) {
+  const token = process.env.IPINFO_TOKEN; // set in Render environment variables
+  try {
+    const res = await axios.get(`https://ipinfo.io/${ip}/json?token=${token}`);
+    return res.data; // contains city, region, country, loc
+  } catch (err) {
+    console.error('Geolocation API error:', err);
+    return null;
+  }
+}
 
 // Middleware for setting base URL
 app.use((req, res, next) => {
@@ -125,7 +142,6 @@ app.post('/create', requireLogin, (req, res) => {
   const pixelId = uuidv4();
   const createdat = new Date().toISOString();
 
-
   db.query('INSERT INTO pixels (id, name, createdat) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdat])
     .then(() => {
       res.redirect('/');
@@ -136,22 +152,26 @@ app.post('/create', requireLogin, (req, res) => {
     });
 });
 
-app.get('/logo/:id.png', (req, res) => {
+// Serve pixel image and log access with geolocation
+app.get('/logo/:id.png', async (req, res) => {
   const pixelId = req.params.id;
   console.log(`Loading pixel image for ID: ${pixelId}`);
 
   const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || '';
-
-  // Declare and assign 'now' before any database queries
   const now = new Date().toISOString();
-  console.log('Captured User-Agent:', userAgent);
 
-  // Log the load event
-  db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
-    .catch(err => {
-      console.error('Error inserting log:', err);
-    });
+  // Fetch geolocation info
+  const geoInfo = await getGeolocation(ip);
+  const locationStr = geoInfo ? `${geoInfo.city}, ${geoInfo.region}, ${geoInfo.country}` : 'Unknown';
+
+  console.log(`User IP: ${ip}, Location: ${locationStr}`);
+
+  // Log the event with location info
+  await db.query(
+    'INSERT INTO logs (pixelId, time, ip, userAgent, location) VALUES ($1, $2, $3, $4, $5)',
+    [pixelId, now, ip, userAgent, locationStr]
+  ).catch(err => console.error('Error inserting log:', err));
 
   // Check if pixel exists
   db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
@@ -168,10 +188,11 @@ app.get('/logo/:id.png', (req, res) => {
       res.status(500).send('Server error');
     });
 });
-// Route to delete a pixel by ID
+
+// Route to delete a pixel
 app.post('/delete/:id', requireLogin, (req, res) => {
   const pixelId = req.params.id;
-  // Delete associated logs first (optional)
+  // Delete associated logs first
   db.query('DELETE FROM logs WHERE pixelId = $1', [pixelId])
     .then(() => {
       // Delete the pixel
@@ -185,6 +206,7 @@ app.post('/delete/:id', requireLogin, (req, res) => {
       res.status(500).send('Error deleting pixel');
     });
 });
+
 // View logs for a pixel
 app.get('/logs/:id', requireLogin, (req, res) => {
   const pixelId = req.params.id;
@@ -213,4 +235,3 @@ const PORT = process.env.PORT || 3300;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
- 
