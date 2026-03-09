@@ -50,7 +50,7 @@
 
     /* Create logo form styles */
     form {
-      display: flex: !important;
+      display: flex !important;
       gap: 10px;
       margin-bottom: 20px;
       flex-wrap: wrap;
@@ -70,7 +70,8 @@
       box-shadow: 0 0 8px rgba(0,123,255,0.3);
       outline: none;
     }
-    button {
+    /* Style for all buttons in the table */
+    table button {
       padding: 12px 20px;
       border: none;
       border-radius: 10px;
@@ -78,10 +79,20 @@
       color: #fff;
       font-size: 1.1rem;
       cursor: pointer;
+      min-width: 120px; /* Ensures all buttons are at least this width */
+      transition: background-color 0.2s, transform 0.2s;
     }
-    button:hover {
+    /* Hover effect for buttons */
+    table button:hover {
       background-color: #0056b3;
       transform: translateY(-2px);
+    }
+    /* Optional: Different style for delete button (red) */
+    .delete-btn {
+      background-color: #dc3545;
+    }
+    .delete-btn:hover {
+      background-color: #a71d2a;
     }
 
     /* Table styles with consistent borders */
@@ -114,6 +125,7 @@
       color: #fff;
       font-weight: 500;
       transition: background-color 0.2s;
+      margin-right: 8px;
     }
     .log-btn:hover {
       background-color: #218838;
@@ -125,7 +137,7 @@
         flex-direction: column;
         align-items: center;
       }
-      button {
+      table button {
         width: 100%;
       }
       table {
@@ -159,7 +171,6 @@
             <th>Created</th>
             <th>Logo URL</th>
             <th>Actions</th>
-            <th>Delete<th>
           </tr>
         </thead>
         <tbody>
@@ -190,10 +201,8 @@
               <td style="text-align:center;">
                 <button onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
                 <a href="/logs/<%= pixel.id %>" class="log-btn">View Logs</a>
-              </td>
-              <td>
                 <form action="/delete/<%= pixel.id %>" method="POST" style="display:inline;">
-                  <button type="submit" onclick="return confirm('Are you sure you want to delete this pixel?');">Delete</button>
+                  <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this pixel?');">Delete</button>
                 </form>
               </td>
             </tr>
