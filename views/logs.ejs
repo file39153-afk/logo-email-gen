@@ -113,15 +113,17 @@
 
     <table>
       <colgroup>
-        <col style="width: 220px;" />
-        <col style="width: 160px;" />
-        <col style="width: auto;" />
+        <col style="width: 200px;" />
+        <col style="width: 150px;" />
+        <col style="width: 250px;" />
+        <col style="width: 200px;" />
       </colgroup>
       <thead>
         <tr>
           <th>Time</th>
           <th>IP</th>
           <th>User-Agent</th>
+          <th>Location</th> <!-- New column for location -->
         </tr>
       </thead>
       <tbody>
@@ -145,6 +147,7 @@
           <td><%= formatted %></td>
           <td><%= log.ip %></td>
           <td><%= log.useragent %></td>
+          <td><%= log.location || 'Unknown' %></td> <!-- Show location or fallback -->
         </tr>
         <% }) %>
       </tbody>
@@ -152,4 +155,3 @@
   </div>
 </body>
 </html>
- 
