@@ -80,10 +80,6 @@
     const formattedCreatedAt = isNaN(createdAtDate.getTime()) ? 'Invalid Date' : createdAtDate.toLocaleString();
   %>
   <h2>Created at: <%= formattedCreatedAt %></h2>
-    <!-- Debug: dump logs array as JSON -->
-    <h2>Debug: Raw logs data</h2>
-    <pre><%= JSON.stringify(logs, null, 2) %></pre>
-
     <!-- Date formatting function and variables -->
     <%
       const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
