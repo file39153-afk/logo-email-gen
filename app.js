@@ -17,11 +17,7 @@ app.use(session({
   secret: envKey,
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    secure: true,
-    httpOnly: true,
-    sameSite: 'strict' // or 'lax'
-  }
+  cookie: { secure: false }
 }));
 
 // Serve static files
