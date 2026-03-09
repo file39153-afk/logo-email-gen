@@ -13,12 +13,15 @@ app.use(express.urlencoded({ extended: false }));
 
 const envKey = process.env.SECRET_KEY;
 
-// Configure session middleware
 app.use(session({
   secret: envKey,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // only over HTTPS
+    httpOnly: true,
+    sameSite: 'strict' // or 'lax'
+  }
 }));
 
 // Serve static files
