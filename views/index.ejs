@@ -70,7 +70,8 @@
       box-shadow: 0 0 8px rgba(0,123,255,0.3);
       outline: none;
     }
-    button {
+    /* Style for all button-like elements inside the table */
+    table a.button, table button {
       padding: 12px 20px;
       border: none;
       border-radius: 10px;
@@ -78,10 +79,33 @@
       color: #fff;
       font-size: 1.1rem;
       cursor: pointer;
+      min-width: 120px; /* Ensures all buttons are same width */
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+      margin: 2px;
+      transition: background-color 0.2s, transform 0.2s;
     }
-    button:hover {
-      background-color: #0056b3;
-      transform: translateY(-2px);
+
+    /* Specific style for "View Logs" link to look like a button */
+    .view-logs {
+      background-color: #28a745;
+    }
+    .view-logs:hover {
+      background-color: #218838;
+    }
+
+    /* Style for the delete button (red) */
+    .delete-btn {
+      background-color: #dc3545;
+    }
+    .delete-btn:hover {
+      background-color: #a71d2a;
+    }
+
+    /* Hover effect for all buttons */
+    table a.button:hover {
+      filter: brightness(90%);
     }
 
     /* Table styles with consistent borders */
@@ -103,30 +127,13 @@
       font-weight: 600;
     }
 
-    /* Style for the "View Logs" link to center text and remove underline */
-    .log-btn {
-      display: inline-block;
-      text-align: center;
-      text-decoration: none;
-      padding: 4px 8px;
-      border-radius: 4px;
-      background-color: #28a745;
-      color: #fff;
-      font-weight: 500;
-      transition: background-color 0.2s;
-      margin-right: 8px;
-    }
-    .log-btn:hover {
-      background-color: #218838;
-    }
-
     /* Responsive adjustments */
     @media(max-width: 600px){
       form {
         flex-direction: column;
         align-items: center;
       }
-      button {
+      table a.button {
         width: 100%;
       }
       table {
@@ -139,7 +146,7 @@
   <div class="container">
     <h1>Logo Manager - Dashboard</h1>
 
-    <!-- Create new logo -->
+    <!-- Create a new logo -->
     <h2>Create a New Logo</h2>
     <form action="/create" method="POST">
       <input type="text" id="name" name="name" placeholder="Logo Name (optional)" />
@@ -148,7 +155,7 @@
 
     <hr />
 
-    <!-- List existing logos -->
+    <!-- Existing logos list -->
     <h2>Existing Logos</h2>
     <% if (pixels.length === 0) { %>
       <p style="text-align:center; margin-top:20px;">No logos created yet.</p>
@@ -188,10 +195,13 @@
                 <input type="text" readonly value="<%= baseUrl + '/logo/' + pixel.id + '.png' %>" />
               </td>
               <td style="text-align:center;">
+                <!-- Copy URL button -->
                 <button onclick="copyToClipboard('<%= baseUrl + '/logo/' + pixel.id + '.png' %>')">Copy URL</button>
-                <a href="/logs/<%= pixel.id %>" class="log-btn">View Logs</a>
+                <!-- View Logs link styled as button -->
+                <a href="/logs/<%= pixel.id %>" class="button view-logs">View Logs</a>
+                <!-- Delete form styled as button -->
                 <form action="/delete/<%= pixel.id %>" method="POST" style="display:inline;">
-                  <button type="submit" onclick="return confirm('Are you sure you want to delete this pixel?');">Delete</button>
+                  <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this pixel?');">Delete</button>
                 </form>
               </td>
             </tr>

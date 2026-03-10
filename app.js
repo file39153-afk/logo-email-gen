@@ -3,6 +3,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { Client } = require('pg');
 const session = require('express-session');
+const fetch = require('node-fetch'); // Make sure to install: npm install node-fetch
 
 const app = express();
 
@@ -12,7 +13,6 @@ app.use(express.urlencoded({ extended: false }));
 
 const envKey = process.env.SECRET_KEY;
 
-// Configure session middleware
 app.use(session({
   secret: envKey,
   resave: false,
@@ -25,11 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // PostgreSQL client setup
 const db = new Client({
-  host: 'dpg-d6mhegn5r7bs73cek66g-a', // your host
-  port: 5432,
-  database: 'logo02',
-  user: 'logo02_user',
-  password: 'cmZg6T5afl8MgHArMMPnDL106lqbhrCQ'
+  connectionString: process.env.DATABASE_URL,
 });
 
 // Connect to PostgreSQL
@@ -52,7 +48,10 @@ db.connect()
           pixelId TEXT,
           time TEXT,
           ip TEXT,
-          userAgent TEXT
+          userAgent TEXT,
+          city TEXT,
+          region TEXT,
+          country TEXT
         )
       `)
     ]);
@@ -125,7 +124,6 @@ app.post('/create', requireLogin, (req, res) => {
   const pixelId = uuidv4();
   const createdAt = new Date().toISOString();
 
-
   db.query('INSERT INTO pixels (id, name, createdAt) VALUES ($1, $2, $3)', [pixelId, name || `Pixel-${pixelId.slice(0,8)}`, createdAt])
     .then(() => {
       res.redirect('/');
@@ -136,35 +134,71 @@ app.post('/create', requireLogin, (req, res) => {
     });
 });
 
-// Serve pixel image and log load
-app.get('/logo/:id.png', (req, res) => {
+// Serve pixel image and log load with location
+app.get('/logo/:id.png', async (req, res) => {
   const pixelId = req.params.id;
   console.log(`Loading pixel image for ID: ${pixelId}`);
+
   const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || '';
-  const now = new Date().toISOString();
-  db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
 
-  // Check pixel exists
+  const now = new Date().toISOString();
+
+  // Fetch location info from ipinfo.io
+  let city = null, region = null, country = null;
+  try {
+    const token = process.env.IPINFO_TOKEN; // Set in environment variables
+    const response = await fetch(`https://ipinfo.io/${ip}/json?token=${token}`);
+    if (response.ok) {
+      const locationData = await response.json();
+      city = locationData.city || null;
+      region = locationData.region || null;
+      country = locationData.country || null;
+    } else {
+      console.warn('Failed to fetch location info:', response.status);
+    }
+  } catch (err) {
+    console.error('Error fetching IP info:', err);
+  }
+
+  // Log the load event with location info
+  db.query(
+    'INSERT INTO logs (pixelId, time, ip, userAgent, city, region, country) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+    [pixelId, now, ip, userAgent, city, region, country]
+  ).catch(err => {
+    console.error('Error inserting log with location:', err);
+  });
+
+  // Check if pixel exists
   db.query('SELECT * FROM pixels WHERE id = $1', [pixelId])
     .then(result => {
       if (result.rows.length === 0) {
         console.warn(`Pixel not found: ${pixelId}`);
         return res.status(404).send('Pixel not found');
       }
-      // Log load
-      db.query('INSERT INTO logs (pixelId, time, ip, userAgent) VALUES ($1, $2, $3, $4)', [pixelId, now, ip, userAgent])
-        .then(() => {
-          res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
-        })
-        .catch(err => {
-          console.error('Error inserting log:', err);
-          res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
-        });
+      res.sendFile(path.join(__dirname, 'public', 'images', 'pixel.png'));
     })
     .catch(err => {
       console.error('Error retrieving pixel:', err);
       res.status(500).send('Server error');
+    });
+});
+
+// Route to delete a pixel by ID
+app.post('/delete/:id', requireLogin, (req, res) => {
+  const pixelId = req.params.id;
+  // Delete associated logs first (optional)
+  db.query('DELETE FROM logs WHERE pixelId = $1', [pixelId])
+    .then(() => {
+      // Delete the pixel
+      return db.query('DELETE FROM pixels WHERE id = $1', [pixelId]);
+    })
+    .then(() => {
+      res.redirect('/');
+    })
+    .catch(err => {
+      console.error('Error deleting pixel:', err);
+      res.status(500).send('Error deleting pixel');
     });
 });
 
